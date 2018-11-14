@@ -10,6 +10,7 @@ import sys
 import json
 import shutil
 import argparse
+import datetime
 import tempfile
 import subprocess
 
@@ -41,7 +42,20 @@ else:
 
 # Handle --insert-only
 if args.insert_only:
-    builddata['builds'].insert(0, args.insert_only)
+    build_ver_dir = os.path.join(builds_dir, args.insert_only)
+    build_ver_json = os.path.join(build_ver_dir, "meta.json")
+
+    if os.path.isfile(build_ver_json):
+        with open(build_ver_json) as b:
+            b_json = json.load(b)
+
+        try:
+            build_ver_ts = b_json.get('build-timestamp') or b_json['ostree-timestamp']
+            parsed_ts = dateutil.parser.parse(build_ver_ts)
+        except:
+            parsed_ts = datetime.datetime.utcnow()
+
+    builddata['builds'].insert(0, { args.insert_only: {'timestamp': str(parsed_ts) } })
     write_json(builds_json, builddata)
     sys.exit(0)
 
@@ -50,7 +64,6 @@ skip_pruning = (args.keep_last_n == 0)
 # first, regen builds.json
 with os.scandir(builds_dir) as it:
     for entry in it:
-
         # ignore non-dirs
         if not entry.is_dir(follow_symlinks=False):
             # those are really the only three non-dir things we expect there
@@ -72,13 +85,17 @@ with os.scandir(builds_dir) as it:
         t = dateutil.parser.parse(ts)
         builds.append((entry.name, t))
 
+
 builds = sorted(builds, key=lambda x: x[1], reverse=True)
 builds_to_delete = []
 if not skip_pruning and len(builds) > args.keep_last_n:
     builds_to_delete = builds[args.keep_last_n:]
     del builds[args.keep_last_n:]
 
-builddata['builds'] = [x[0] for x in builds]
+for x in builds:
+    builddata['builds'].append({ x[0]: {'timestamp': str(x[1]) } })
+#builddata['builds'] = ['version': x[0] for x in builds]
+print(f'buildata: {builddata}')
 write_json(builds_json, builddata)
 
 # if we're not pruning, then we're done!
