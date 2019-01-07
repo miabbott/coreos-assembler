@@ -1,0 +1,45 @@
+#!/usr/bin/python3 -u
+# An operation that mutates a build by generating an OpenStack image.
+
+import os
+import sys
+import json
+import yaml
+import gpg
+import shutil
+import argparse
+
+sys.path.insert(0, '/usr/lib/coreos-assembler')
+from cmdlib import run_verbose, write_json, sha256sum_file
+
+# Parse args and dispatch
+parser = argparse.ArgumentParser()
+parser.add_argument("--build", help="Build artifacts to sign")
+parser.add_argument("--metadata", help="Sign only metadata files")
+parser.add_argument("--image", help="Sign only image files")
+parser.add_argument("GPGKEY", help="Path to GPG key")
+parser.add_arugment("PASSPHRASE", help="Passphrase to unlock private key")
+args = parser.parse_args()
+
+
+# default to latest build if not specified
+if not args.build:
+    with open('builds/builds.json') as f:
+        j = json.load(f)
+        args.build = j['builds'][0]
+
+print(f"Targeting build: {args.build}")
+
+builddir = f'builds/{args.build}'
+
+gpg = gnupg.GPG(gnupghome=args.GPGKEY)
+
+# Build list of JSON metadata files
+allfiles = [f for f in os.listdir(builddir) if isfile(join(builddir, f))]
+for afile in allfiles:
+    if not os.path.islink(afile) and afile.endswith('.json'):
+        with open(afile, 'rb') as f:
+            stream = gpg.sign_file(f, passphrase=args.PASSPHRASE, clearsign=True, output=f'{afile}.sig')
+            print(f'{afile} {stream.status}')
+
+
