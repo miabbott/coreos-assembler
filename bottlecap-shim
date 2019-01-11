@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 pushd /host/src/ || exit 1
 sudo ./build.sh make_and_makeinstall
