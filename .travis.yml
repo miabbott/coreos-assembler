@@ -10,7 +10,7 @@ before_script:
 
 script:
   # shellcheck validate
-  - docker run -v "$PWD:/mnt:ro" docker.io/koalaman/shellcheck -x $(find . -path ./mantle -prune -and -path ./ostree-releng-scripts -prune -o -type f -exec grep -l '^#!.*bash' {} \;)
+  - docker run -v "$PWD:/mnt:ro" docker.io/koalaman/shellcheck -x $(find . -path ./mantle -prune -and -path ./ostree-releng-scripts -prune -o -type f -exec grep -l '^#!/usr/bin/env bash' {} \;)
 
 notifications:
   email: false
