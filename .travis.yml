@@ -12,10 +12,11 @@ before_install:
 
 script:
     - python3 -V
+    - sudo rm $(command -v shellcheck)
     - wget https://storage.googleapis.com/shellcheck/shellcheck-${SCVERSION}.linux.x86_64.tar.xz
     - tar --xz -xvf shellcheck-${SCVERSION}.linux.x86_64.tar.xz
     - sudo cp shellcheck-${SCVERSION}/shellcheck /usr/bin/
-    - /usr/bin/shellcheck --version
+    - shellcheck --version
     - tests/check.sh
 
 notifications:

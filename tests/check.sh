@@ -42,7 +42,7 @@ do
     fi
     if [[ ${HASSHELLCHECK} == 1 ]]; then
         if [[ $shebang =~ ^#!/.*/bash.* ]] || [[ $shebang =~ ^#!/.*/env\ bash ]]; then
-            /usr/bin/shellcheck -x "$f"
+            shellcheck -x "$f"
             bash -n "$f"
             echo "OK ${f}"
             continue
