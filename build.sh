@@ -4,10 +4,16 @@ set -euo pipefail
 # Detect what platform we are on
 if grep -q '^Fedora' /etc/redhat-release; then
     ISFEDORA=1
-    ISEL=''
-elif grep -q '^Red Hat' /etc/redhat-release; then
+    ISEL7=''
+    ISEL8=''
+elif grep -q -e '^Red Hat.*7' /etc/redhat-release; then
     ISFEDORA=''
-    ISEL=1
+    ISEL7=1
+    ISEL8=''
+elif grep -q -e '^Red Hat.*8' /etc/redhat-release; then
+    ISFEDORA=''
+    ISEL7=''
+    ISEL8=1
 else
     echo 1>&2 "should be on either RHEL or Fedora"
     exit 1
@@ -75,7 +81,8 @@ install_rpms() {
     # define the filter we want to use to filter out deps that don't
     # apply to the platform we are on
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
-    [ -n "${ISEL}" ]     && filter='^#EL7 '
+    [ -n "${ISEL7}" ]    && filter='^#EL7 '
+    [ -n "${ISEL8}" ]    && filter='^#EL8 '
 
     # These are only used to build things in here.  Today
     # we ship these in the container too to make it easier
@@ -90,7 +97,8 @@ install_rpms() {
 
     # Install modules on EL8
     if grep -q '^#module' "${srcdir}/deps.txt"; then
-      yum -y module install "$(grep '^#module' "${srcdir}/deps.txt" | awk '{$1=""; print $0}')"
+      # echo the output to avoid quoting issues
+      echo "$(grep '^#module' "${srcdir}/deps.txt" | awk '{$1=""; print $0}')" | xargs yum -y module install
     fi
 
     # grab virt-install from updates testing for now
@@ -131,7 +139,7 @@ _prep_make_and_make_install() {
     fi
 
     # Can only (easily) get gobject-introspection in Python2 on EL7
-    if [ -n "${ISEL}" ]; then
+    if [ -n "${ISEL7}" ]; then
       sed -i 's|^#!/usr/bin/python3|#!/usr/bin/python2|' src/commitmeta_to_json
       sed -i 's|^#!/usr/bin/env python3|#!/usr/bin/python2|' src/cmd-oscontainer
     fi
@@ -141,7 +149,7 @@ make_and_makeinstall() {
     set -x
     _prep_make_and_make_install
     # And the main scripts
-    if [ -n "${ISEL}" ]; then
+    if [ -n "${ISEL7}" ]; then
         echo "make && make check && make install" | scl enable rh-python36 bash
     else
         make && make check && make install

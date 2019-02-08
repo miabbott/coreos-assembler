@@ -13,10 +13,16 @@ export PYTHONUNBUFFERED=1
 # Detect what platform we are on
 if grep -q '^Fedora' /etc/redhat-release; then
     export ISFEDORA=1
-    export ISEL=''
-elif grep -q '^Red Hat' /etc/redhat-release; then
+    export ISEL7=''
+    export ISEL8=''
+elif grep -q -e '^Red Hat.*7' /etc/redhat-release; then
     export ISFEDORA=''
-    export ISEL=1
+    export ISEL7=1
+    export ISEL8=''
+elif grep -q -e '^Red Hat.*8' /etc/redhat-release; then
+    export ISFEDORA=''
+    export ISEL7=''
+    export ISEL8=1
 else
     echo 1>&2 "should be on either RHEL or Fedora"
     exit 1
@@ -88,7 +94,8 @@ preflight() {
     # Verify we have all dependencies
     local deps
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
-    [ -n "${ISEL}" ]     && filter='^#EL7 '
+    [ -n "${ISEL7}" ]    && filter='^#EL7 '
+    [ -n "${ISEL8}" ]      && filter='^#EL8 '
     deps=$(sed "s/${filter}//" /usr/lib/coreos-assembler/deps.txt | grep -v '^#')
     # Explicitly check the packages in one rpm -q to avoid
     # overhead, only drop down to individual calls if that fails.
@@ -126,7 +133,7 @@ preflight() {
         fi
     fi
 
-    if ! has_privileges && [ -n "${ISEL}" ]; then
+    if ! has_privileges && [ -n "${ISEL7}" ]; then
         fatal "running on EL requires privileged mode"
     fi
 }
