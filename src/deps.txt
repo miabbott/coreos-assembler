@@ -27,7 +27,7 @@ libvirt libguestfs-tools /usr/bin/qemu-img /usr/bin/virsh /usr/bin/virt-install 
 rsync python3-gobject-base
 
 # To support recursive containerization and manipulating images
-#module container-tools foo bar
+#module container-tools
 
 # Miscellaneous tools
 jq awscli
