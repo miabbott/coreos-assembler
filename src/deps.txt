@@ -9,12 +9,8 @@ sudo
 dumb-init
 
 # For composes
-rpm-ostree createrepo_c openssh-clients
-#FEDORA dnf-utils
-#EL7 yum-utils
+rpm-ostree createrepo_c openssh-clients dnf-utils
 
-# We expect people to use these explicitly in their repo configurations.
-#FEDORA distribution-gpg-keys
 # We need these for rojig
 selinux-policy-targeted rpm-build
 
@@ -22,30 +18,22 @@ selinux-policy-targeted rpm-build
 make git rpm-build
 
 # virt-install dependencies
-libvirt libguestfs-tools qemu-kvm /usr/bin/qemu-img /usr/bin/virsh /usr/bin/virt-install
+libvirt libguestfs-tools /usr/bin/qemu-img /usr/bin/virsh /usr/bin/virt-install qemu-kvm
 
 # And we process kickstarts
 /usr/bin/ksflatten
 
-# scl and python36 For EL7
-#EL7 scl-utils rh-python36 rh-python36-PyYAML
-
 # ostree-releng-scripts dependencies
-rsync
-#FEDORA python2-gobject-base python3-gobject-base
-#EL7 python-gobject
+rsync python3-gobject-base
 
 # To support recursive containerization and manipulating images
-podman buildah skopeo
+#module container-tools foo bar
 
 # Miscellaneous tools
 jq awscli
 
 # For ignition file validation in cmd-run
 ignition
-
-# shellcheck for test
-#FEDORA ShellCheck
 
 # for grub install when creating images without anaconda
 grub2

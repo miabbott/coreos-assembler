@@ -88,6 +88,11 @@ install_rpms() {
     deps=$(sed "s/${filter}//" "${srcdir}"/deps.txt | grep -v '^#')
     echo "${builddeps}" "${deps}" | xargs yum -y install
 
+    # Install modules on EL8
+    if grep -q '^#module' "${srcdir}/deps.txt"; then
+      yum -y module install "$(grep '^#module' "${srcdir}/deps.txt" | awk '{$1=""; print $0}')"
+    fi
+
     # grab virt-install from updates testing for now
     # https://bugzilla.redhat.com/show_bug.cgi?id=1659242
     # can delete once https://bodhi.fedoraproject.org/updates/FEDORA-2019-c38a307cd5
@@ -133,6 +138,7 @@ _prep_make_and_make_install() {
 }
 
 make_and_makeinstall() {
+    set -x
     _prep_make_and_make_install
     # And the main scripts
     if [ -n "${ISEL}" ]; then
