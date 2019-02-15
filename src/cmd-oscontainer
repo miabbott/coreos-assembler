@@ -103,15 +103,31 @@ def oscontainer_build(containers_storage, src, ref, image_name_and_tag,
         subprocess.call(['buildah', rootarg, 'rm', bid], stdout=subprocess.DEVNULL)
 
     if push:
-        print("Pushing container")
-        if not tls_verify:
-            tls_arg = '--tls-verify=false'
-        else:
-            tls_arg = '--tls-verify'
-        run_verbose(['podman', rootarg, 'push', tls_arg, image_name_and_tag])
-        inspect = run_get_json(['skopeo', 'inspect', "docker://"+image_name_and_tag])
+        oscontainer_push(containers_storage, image_name_and_tag, tls_verify,
+                         inspect_out)
     else:
         inspect = run_get_json(['podman', rootarg, 'inspect', image_name_and_tag])[0]
+        if inspect_out is not None:
+            with open(inspect_out, 'w') as f:
+                json.dump(inspect, f)
+
+def oscontainer_push(containers_storage, image_name_and_tag, tls_verify=True,
+                     inspect_out=None):
+    rootarg = '--root='+containers_storage
+    try:
+        subprocess.check_call(['podman', rootarg, 'inspect', image_name_and_tag])
+    except subprocess.CalledProcessError:
+        print("FATAL: failed to find image {} to push".format(image_name_and_tag))
+        raise SystemExit(1)
+
+    print("Pushing container")
+    if not tls_verify:
+        tls_arg = '--tls-verify=false'
+    else:
+        tls_arg = '--tls-verify'
+    run_verbose(['podman', rootarg, 'push', tls_arg, image_name_and_tag])
+    inspect = run_get_json(['skopeo', 'inspect', "docker://"+image_name_and_tag])
+
     if inspect_out is not None:
         with open(inspect_out, 'w') as f:
             json.dump(inspect, f)
@@ -136,6 +152,10 @@ parser_build.add_argument("--inspect-out", help="Write image JSON to file",
                           action='store', metavar='FILE')
 parser_build.add_argument("--push", help="Push to registry",
                           action='store_true')
+parser_pushonly = subparsers.add_parser('push-only', help='Push a built oscontainer')
+parser_pushonly.add_argument("name", help="Image name to push")
+parser_pushonly.add_argument("--inspect-out", help="Write image JSON to file",
+                             action='store', metavar='FILE')
 args = parser.parse_args()
 
 containers_storage = os.path.join(args.workdir, 'containers-storage')
@@ -152,3 +172,7 @@ elif args.action == 'build':
                       inspect_out=args.inspect_out,
                       push=args.push,
                       tls_verify=not args.disable_tls_verify)
+elif args.action == 'push-only':
+    oscontainer_push(containers_storage, args.name,
+                     tls_verify=not args.disable_tls_verify,
+                     inspect_out=args.inspect_out)
