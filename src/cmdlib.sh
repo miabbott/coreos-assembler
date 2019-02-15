@@ -267,6 +267,9 @@ runvm() {
     # shellcheck disable=SC2086
     supermin --prepare --use-installed -o "${vmpreparedir}" $rpms
 
+    # include COSA in the image
+    find /usr/lib/coreos-assembler/ -type f > "${vmpreparedir}/hostfiles"
+
     # the reason we do a heredoc here is so that the var substition takes
     # place immediately instead of having to proxy them through to the VM
     cat > "${vmpreparedir}/init" <<EOF
@@ -282,6 +285,7 @@ echo \$rc > ${workdir}/tmp/rc
 EOF
     chmod a+x "${vmpreparedir}"/init
     (cd "${vmpreparedir}" && tar -czf init.tar.gz --remove-files init)
+    find /usr/lib/coreos-assembler/ > "${vmpreparedir}/hostfiles"
     supermin --build "${vmpreparedir}" --size 5G -f ext2 -o "${vmbuilddir}"
 
     echo "$@" > "${TMPDIR}"/cmd.sh
