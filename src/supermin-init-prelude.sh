@@ -16,8 +16,9 @@ LANG=C /sbin/load_policy  -i
 /usr/sbin/dhclient eth0
 
 # set up workdir
-mkdir -p "${workdir:?}"
+mkdir -p "${workdir:?}" /usr/lib/coreos-assembler
 mount -t 9p -o rw,trans=virtio,version=9p2000.L workdir "${workdir}"
+mount -t 9p -o rw,trans=virtio,version=9p2000.L cosa /usr/lib/coreos-assembler
 if [ -L "${workdir}"/src/config ]; then
     mkdir -p "$(readlink "${workdir}"/src/config)"
     mount -t 9p -o rw,trans=virtio,version=9p2000.L source "${workdir}"/src/config

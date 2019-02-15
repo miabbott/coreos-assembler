@@ -303,6 +303,7 @@ EOF
         -drive if=none,id=drive-scsi0-0-0-1,discard=unmap,file="${workdir}/cache/cache.qcow2" \
         -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=1,drive=drive-scsi0-0-0-1,id=scsi0-0-0-1 \
         -virtfs local,id=workdir,path="${workdir}",security_model=none,mount_tag=workdir \
+        -virtfs local,id=cosa,path="/usr/lib/coreos-assembler",security_model=none,mount_tag=cosa \
         "${srcvirtfs[@]}" -serial stdio -append "root=/dev/sda console=ttyS0 selinux=1 enforcing=0 autorelabel=1"
 
     if [ ! -f "${workdir}"/tmp/rc ]; then
