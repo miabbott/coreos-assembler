@@ -78,7 +78,10 @@ def oscontainer_build(containers_storage, src, ref, image_name_and_tag,
         ostree_version = None
 
     rootarg = '--root='+containers_storage
-    bid = run_get_string(['buildah', rootarg, 'from', base_image])
+    print("DEBUG: container_storage == {}".format(containers_storage))
+    #subprocess.check_call(['ls', '-laZ', containers_storage])
+
+    bid = run_get_string(['buildah', '--debug', rootarg, 'from', base_image])
     mnt = run_get_string(['buildah', rootarg, 'mount', bid])
     try:
         dest_repo = os.path.join(mnt, 'srv/repo')
