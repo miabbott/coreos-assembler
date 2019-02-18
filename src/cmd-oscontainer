@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -xeou pipefail
+
+dn=$(dirname "$0")
+# shellcheck source=src/cmdlib.sh
+. "${dn}"/cmdlib.sh
+
+prepare_build
+
+osc="${dn}/oscontainer.py"
+
+print_help() {
+    "${osc}" --help
+}
+
+if [ "$#" -eq 0 ]; then
+    print_help
+    exit 1
+fi
+
+if has_privileges; then
+    sudo "${osc}" "$@"
+else
+    runvm "${osc}" "$@"
+fi
