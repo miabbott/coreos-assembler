@@ -260,10 +260,10 @@ runvm() {
     mkdir -p "${vmpreparedir}" "${vmbuilddir}"
 
     local rpms=
+    rpms="bash chroot"
     # then add all the base deps
     # for syntax see: https://github.com/koalaman/shellcheck/wiki/SC2031
-    #while IFS= read -r dep; do rpms+="$dep "; done < <(grep -v '^#' "${DIR}"/vmdeps.txt)
-    rpms="bash chroot"
+    while IFS= read -r dep; do rpms+="$dep "; done < <(grep -v '^#' "${DIR}"/vmdeps.txt)
     # shellcheck disable=SC2086
     supermin --prepare --use-installed -o "${vmpreparedir}" $rpms
 

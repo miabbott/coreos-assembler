@@ -16,4 +16,4 @@ dhcp-client bind-export-libs iproute
 selinux-policy selinux-policy-targeted policycoreutils
 
 # coreos-assembler
-python3 python3-gobject-base buildah podman skopeo
+python3 python3-gobject-base buildah podman skopeo util-linux
