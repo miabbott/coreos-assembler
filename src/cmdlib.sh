@@ -276,13 +276,13 @@ trap "/sbin/reboot -f" EXIT
 workdir=${workdir}
 $(cat "${DIR}"/supermin-init-prelude.sh)
 
-chroot /host bash -c '
+/usr/sbin/chroot /host bash -c '
 set -xeou pipefail
 LANG=C /sbin/load_policy -i
 export TMPDIR=${workdir}/tmp
 trap "echo \$? > ${workdir}/tmp/rc" EXIT
 cd ${workdir}
-${workdir}/cmd.sh
+${workdir}/tmp/cmd.sh
 /sbin/fstrim -v ${workdir}/cache
 '
 EOF
@@ -290,7 +290,8 @@ EOF
     (cd "${vmpreparedir}" && tar -czf init.tar.gz --remove-files init)
     supermin --build "${vmpreparedir}" --size 5G -f ext2 -o "${vmbuilddir}"
 
-    echo "$@" > "${TMPDIR}"/cmd.sh
+    echo "$@" > "${workdir}"/tmp/cmd.sh
+    chmod +x "${workdir}/tmp/cmd.sh"
 
     # support local dev cases where src/config is a symlink
     srcvirtfs=()
