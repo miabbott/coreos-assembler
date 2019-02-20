@@ -262,7 +262,8 @@ runvm() {
     local rpms=
     # then add all the base deps
     # for syntax see: https://github.com/koalaman/shellcheck/wiki/SC2031
-    while IFS= read -r dep; do rpms+="$dep "; done < <(grep -v '^#' "${DIR}"/vmdeps.txt)
+    #while IFS= read -r dep; do rpms+="$dep "; done < <(grep -v '^#' "${DIR}"/vmdeps.txt)
+    rpms="bash chroot"
     # shellcheck disable=SC2086
     supermin --prepare --use-installed -o "${vmpreparedir}" $rpms
 
@@ -271,13 +272,19 @@ runvm() {
     cat > "${vmpreparedir}/init" <<EOF
 #!/bin/bash
 set -xeuo pipefail
+trap "/sbin/reboot -f" EXIT
 workdir=${workdir}
 $(cat "${DIR}"/supermin-init-prelude.sh)
-rc=0
-sh ${TMPDIR}/cmd.sh || rc=\$?
-echo \$rc > ${workdir}/tmp/rc
+
+chroot /host bash -c '
+set -xeou pipefail
+LANG=C /sbin/load_policy -i
+export TMPDIR=${workdir}/tmp
+trap "echo \$? > ${workdir}/tmp/rc" EXIT
+cd ${workdir}
+${workdir}/cmd.sh
 /sbin/fstrim -v ${workdir}/cache
-/sbin/reboot -f
+'
 EOF
     chmod a+x "${vmpreparedir}"/init
     (cd "${vmpreparedir}" && tar -czf init.tar.gz --remove-files init)
@@ -302,8 +309,7 @@ EOF
         -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=0,drive=drive-scsi0-0-0-0,id=scsi0-0-0-0,bootindex=1 \
         -drive if=none,id=drive-scsi0-0-0-1,discard=unmap,file="${workdir}/cache/cache.qcow2" \
         -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=1,drive=drive-scsi0-0-0-1,id=scsi0-0-0-1 \
-        -virtfs local,id=workdir,path="${workdir}",security_model=none,mount_tag=workdir \
-        -virtfs local,id=cosa,path="/usr/lib/coreos-assembler",security_model=none,mount_tag=cosa \
+        -virtfs local,id=host,path=/,security_model=none,mount_tag=host \
         "${srcvirtfs[@]}" -serial stdio -append "root=/dev/sda console=ttyS0 selinux=1 enforcing=0 autorelabel=1"
 
     if [ ! -f "${workdir}"/tmp/rc ]; then

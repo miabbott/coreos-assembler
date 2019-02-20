@@ -4,7 +4,7 @@ mount -t sysfs /sys /sys
 mount -t devtmpfs devtmpfs /dev
 
 # load selinux policy
-LANG=C /sbin/load_policy  -i
+#LANG=C /sbin/load_policy  -i
 
 # load kernel module for 9pnet_virtio for 9pfs mount
 /sbin/modprobe 9pnet_virtio
@@ -16,15 +16,22 @@ LANG=C /sbin/load_policy  -i
 /usr/sbin/dhclient eth0
 
 # set up workdir
-mkdir -p "${workdir:?}" /usr/lib/coreos-assembler
-mount -t 9p -o rw,trans=virtio,version=9p2000.L workdir "${workdir}"
-mount -t 9p -o rw,trans=virtio,version=9p2000.L cosa /usr/lib/coreos-assembler
-if [ -L "${workdir}"/src/config ]; then
-    mkdir -p "$(readlink "${workdir}"/src/config)"
-    mount -t 9p -o rw,trans=virtio,version=9p2000.L source "${workdir}"/src/config
+mkdir -p "/host/${workdir:?}"
+mount -t 9p -o rw,trans=virtio,version=9p2000.L host /host
+mount -t 9p -o rw,trans=virtio,version=9p2000.L workdir "/host/${workdir}"
+
+mount -t tmpfs none /host/tmp
+
+mount -t proc /proc /host/proc
+mount -t sysfs /sys /host/sys
+mount -t devtmpfs devtmpfs /host/dev
+
+if [ -L "/host/${workdir}"/src/config ]; then
+    mkdir -p "$(readlink "/host/${workdir}"/src/config)"
+    mount -t 9p -o rw,trans=virtio,version=9p2000.L source "/host/${workdir}"/src/config
 fi
-mkdir -p "${workdir}"/cache
-mount /dev/sdb1 "${workdir}"/cache
+mkdir -p "/host/${workdir}"/cache "/host/${workdir}"/cache/container-tmp
+mount /dev/sdb1 "/host/${workdir}"/cache
 
 # https://github.com/koalaman/shellcheck/wiki/SC2164
-cd "${workdir}" || exit
+#cd "${workdir}" || exit
