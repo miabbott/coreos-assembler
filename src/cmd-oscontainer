@@ -19,7 +19,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 if has_privileges; then
-    sudo "${osc}" "$@"
+    "$@"
 else
-    runvm "${osc}" "--workdir ${workdir}/cache/container-work" "$@"
+    runvm "${osc}" --workdir /host/container-work "$@"
 fi
