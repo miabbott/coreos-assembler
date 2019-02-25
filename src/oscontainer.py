@@ -36,7 +36,7 @@ def oscontainer_extract(containers_storage, src, dest,
         tls_arg = '--tls-verify=false'
     else:
         tls_arg = '--tls-verify'
-    run_verbose(['podman', rootarg, 'pull', tls_arg, src])
+    run_verbose(['podman', rootarg, 'pull', authfile, tls_arg, src])
     inspect = run_get_json(['podman', rootarg, 'inspect', src])[0]
     commit = inspect['Labels'].get(OSCONTAINER_COMMIT_LABEL)
     if commit is None:
@@ -108,7 +108,7 @@ def oscontainer_build(containers_storage, src, ref, image_name_and_tag,
             tls_arg = '--tls-verify=false'
         else:
             tls_arg = '--tls-verify'
-        run_verbose(['podman', rootarg, 'push', tls_arg, image_name_and_tag])
+        run_verbose(['podman', rootarg, 'push', authfile, tls_arg, image_name_and_tag])
         inspect = run_get_json(['skopeo', 'inspect', "docker://"+image_name_and_tag])
     else:
         inspect = run_get_json(['podman', rootarg, 'inspect', image_name_and_tag])[0]
@@ -122,6 +122,8 @@ parser.add_argument("--workdir", help="Temporary working directory",
                     required=True)
 parser.add_argument("--disable-tls-verify", help="Disable TLS for pushes and pulls",
                     action="store_true")
+parser.add_argument("--authfile", help="Path to container registry auth file",
+                    action="store")
 subparsers = parser.add_subparsers(dest='action')
 parser_extract = subparsers.add_parser('extract', help='Extract an oscontainer')
 parser_extract.add_argument("src", help="Image reference")
@@ -137,6 +139,10 @@ parser_build.add_argument("--inspect-out", help="Write image JSON to file",
 parser_build.add_argument("--push", help="Push to registry",
                           action='store_true')
 args = parser.parse_args()
+
+authfile=''
+if args.authfile:
+    authfile=args.authfile
 
 containers_storage = os.path.join(args.workdir, 'containers-storage')
 if os.path.exists(containers_storage):
