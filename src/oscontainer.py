@@ -142,7 +142,7 @@ args = parser.parse_args()
 
 authfile=''
 if args.authfile:
-    authfile=args.authfile
+    authfile='--authfile='+args.authfile
 
 containers_storage = os.path.join(args.workdir, 'containers-storage')
 if os.path.exists(containers_storage):
