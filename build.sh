@@ -51,7 +51,6 @@ install_rpms() {
     # define the filter we want to use to filter out deps that don't
     # apply to the platform we are on
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
-    [ -n "${ISEL}" ]     && filter='^#EL7 '
 
     # These are only used to build things in here.  Today
     # we ship these in the container too to make it easier
@@ -94,12 +93,6 @@ _prep_make_and_make_install() {
     if [ "$(git submodule status mantle | head -c1)" == "-" ]; then
         echo -e "\033[1merror: submodules not initialized. Run: git submodule update --init\033[0m" 1>&2
         exit 1
-    fi
-
-    # Can only (easily) get gobject-introspection in Python2 on EL7
-    if [ -n "${ISEL}" ]; then
-      sed -i 's|^#!/usr/bin/python3|#!/usr/bin/python2|' src/commitmeta_to_json
-      sed -i 's|^#!/usr/bin/env python3|#!/usr/bin/python2|' src/cmd-oscontainer
     fi
 }
 
