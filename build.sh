@@ -18,6 +18,7 @@ if [ $# -eq 0 ]; then
   echo "Supported commands:"
   echo "    configure_user"
   echo "    configure_yum_repos"
+  echo "    install_anaconda"
   echo "    install_rpms"
   echo "    make_and_makeinstall"
   exit 1
@@ -147,11 +148,7 @@ install_anaconda() {
 make_and_makeinstall() {
     _prep_make_and_make_install
     # And the main scripts
-    if [ -n "${ISEL}" ]; then
-        echo "make && make check && make install" | scl enable rh-python36 bash
-    else
-        make && make check && make install
-    fi
+    make && make check && make install
 }
 
 configure_user(){
