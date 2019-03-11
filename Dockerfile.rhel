@@ -1,13 +1,13 @@
-FROM registry.redhat.io/rhel7:latest
+FROM brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/ubi8
 WORKDIR /root/containerbuild
 
 # Only need a few of our scripts for the first few steps
 COPY ./src/cmdlib.sh ./build.sh ./deps*.txt ./vmdeps.txt ./build-deps.txt /root/containerbuild/
-COPY ./maipo/maipo.repo /etc/yum.repos.d/
+COPY ./ootpa/ootpa.repo /etc/yum.repos.d/
 RUN ./build.sh configure_yum_repos
 # ostree-packages are on another line because all repos get configured to exclude
 # ostree/rpm-ostree in the configure step above
-COPY ./maipo/ostree-packages.repo /etc/yum.repos.d/
+#COPY ./maipo/ostree-packages.repo /etc/yum.repos.d/
 RUN ./build.sh install_rpms
 
 # Ok copy in the rest of them for the next few steps
@@ -26,4 +26,4 @@ RUN chmod g=u /etc/passwd
 
 # run as `builder` user
 USER builder
-ENTRYPOINT ["/usr/bin/dumb-init", "scl", "enable", "rh-python36", "--", "/usr/bin/coreos-assembler"]
+ENTRYPOINT ["/usr/bin/dumb-init", "/usr/bin/coreos-assembler"]
