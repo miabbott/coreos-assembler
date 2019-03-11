@@ -32,7 +32,8 @@ qemu-kvm
 
 # ostree-releng-scripts dependencies
 rsync
-python2-gobject-base python3-gobject-base
+#FEDORA python2-gobject-base python3-gobject-base
+#EL pygobject2
 
 # To support recursive containerization and manipulating images
 podman buildah skopeo
