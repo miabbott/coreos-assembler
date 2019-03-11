@@ -2,16 +2,20 @@
 set -euo pipefail
 
 # Detect what platform we are on
-if grep -q '^Fedora' /etc/redhat-release; then
-    ISFEDORA=1
-    ISEL=''
-elif grep -q '^Red Hat' /etc/redhat-release; then
-    ISFEDORA=''
-    ISEL=1
-else
-    echo 1>&2 "should be on either RHEL or Fedora"
-    exit 1
-fi
+#if grep -q '^Fedora' /etc/redhat-release; then
+#    ISFEDORA=1
+#    ISEL=''
+#elif grep -q '^Red Hat' /etc/redhat-release; then
+#    ISFEDORA=''
+#    ISEL=1
+#else
+#    echo 1>&2 "should be on either RHEL or Fedora"
+#    exit 1
+#fi
+
+# hardcode ISFEDORA for testing
+ISFEDORA=1
+ISEL=''
 
 if [ $# -eq 0 ]; then
   echo Usage: "build.sh CMD"
