@@ -2,20 +2,16 @@
 set -euo pipefail
 
 # Detect what platform we are on
-#if grep -q '^Fedora' /etc/redhat-release; then
-#    ISFEDORA=1
-#    ISEL=''
-#elif grep -q '^Red Hat' /etc/redhat-release; then
-#    ISFEDORA=''
-#    ISEL=1
-#else
-#    echo 1>&2 "should be on either RHEL or Fedora"
-#    exit 1
-#fi
-
-# hardcode ISFEDORA for testing
-ISFEDORA=1
-ISEL=''
+if grep -q '^Fedora' /etc/redhat-release; then
+    ISFEDORA=1
+    ISEL=''
+elif grep -q '^Red Hat' /etc/redhat-release; then
+    ISFEDORA=''
+    ISEL=1
+else
+    echo 1>&2 "should be on either RHEL or Fedora"
+    exit 1
+fi
 
 if [ $# -eq 0 ]; then
   echo Usage: "build.sh CMD"
@@ -56,6 +52,7 @@ install_rpms() {
     # define the filter we want to use to filter out deps that don't
     # apply to the platform we are on
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
+    [ -n "${ISEL}" ] && filter='^#EL '
 
     # These are only used to build things in here.  Today
     # we ship these in the container too to make it easier

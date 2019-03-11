@@ -82,6 +82,7 @@ preflight() {
     # Verify we have all dependencies
     local deps
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
+    [ -n "${ISEL}" ] && filter='^#EL '
     deps=$(sed "s/${filter}//" /usr/lib/coreos-assembler/deps.txt | grep -v '^#')
     archdeps=$(sed "s/${filter}//" /usr/lib/coreos-assembler/deps-"$(arch)".txt | grep -v '^#')
 
@@ -252,6 +253,7 @@ runvm() {
     # then add all the base deps
     # for syntax see: https://github.com/koalaman/shellcheck/wiki/SC2031
     [ -n "${ISFEDORA}" ] && filter='^#FEDORA '
+    [ -n "${ISEL}" ] && filter='^#EL '
     rpms=$(sed "s/${filter}//" "${DIR}"/vmdeps.txt | grep -v '^#')
     # shellcheck disable=SC2086
     supermin --prepare --use-installed -o "${vmpreparedir}" $rpms
