@@ -10,7 +10,7 @@ dumb-init
 
 # For composes
 rpm-ostree createrepo_c openssh-clients
-#FEDORA dnf-utils
+dnf-utils
 
 # For generating ISO images
 genisoimage
@@ -25,14 +25,14 @@ make git rpm-build
 
 # virt-install dependencies
 libvirt libguestfs-tools /usr/bin/qemu-img /usr/bin/virsh /usr/bin/virt-install
-#FEDORA qemu-kvm
+qemu-kvm
 
 # And we process kickstarts
 /usr/bin/ksflatten
 
 # ostree-releng-scripts dependencies
 rsync
-#FEDORA python2-gobject-base python3-gobject-base
+python2-gobject-base python3-gobject-base
 
 # To support recursive containerization and manipulating images
 podman buildah skopeo
