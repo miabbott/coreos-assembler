@@ -27,6 +27,20 @@ set -x
 srcdir=$(pwd)
 
 configure_yum_repos() {
+    # we don't need modules (yet?), so just nuke the repos
+    if [ -n "${ISFEDORA}" ]; then
+      rm -f /etc/yum.repos.d/*modular*.repo
+    fi
+
+    if [ -n "${ISFEDORA}" ] && [ -n "${MIRROR_OVERRIDE-}" ]; then
+      for repo in /etc/yum.repos.d/*.repo; do
+        [[ -e $repo ]] || break
+        sed -i "s|^metalink|#metalink|" "$repo"
+        sed -i "s|^#baseurl|baseurl|" "$repo"
+        sed -i "s|download.fedoraproject.org|${MIRROR_OVERRIDE}|" "$repo"
+      done
+    fi
+
     if [ -n "${ISFEDORA}" ]; then
         # Add FAHC https://pagure.io/fedora-atomic-host-continuous
         # but as disabled.  Today FAHC isn't multi-arch.  But let's
@@ -37,6 +51,7 @@ configure_yum_repos() {
         # Please edit there first
         echo -e '[fahc]\nenabled=0\nmetadata_expire=1m\nbaseurl=https://ci.centos.org/artifacts/sig-atomic/fahc/rdgo/build/\ngpgcheck=0\n' > /etc/yum.repos.d/fahc.repo
     fi
+
 }
 
 install_rpms() {
