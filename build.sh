@@ -30,6 +30,7 @@ configure_yum_repos() {
     # we don't need modules (yet?), so just nuke the repos
     if [ -n "${ISFEDORA}" ]; then
       rm -f /etc/yum.repos.d/*modular*.repo
+      echo "retries=0" >> /etc/dnf/dnf.conf
     fi
 
     if [ -n "${ISFEDORA}" ] && [ -n "${MIRROR_OVERRIDE-}" ]; then
