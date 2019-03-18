@@ -257,6 +257,22 @@ runvm() {
     # include COSA in the image
     find /usr/lib/coreos-assembler/ -type f > "${vmpreparedir}/hostfiles"
 
+    [ -n "${ISFEDORA}" ] && prelude='supermin-init-prelude-fedora.sh'
+    if [ -n "${ISEL}" ]; then
+      prelude='supermin-init-prelude-el.sh'
+      sshd_port=$(shuf -i 2000-65000 -n 1)
+      ip_addr=$(ip route get 1 | awk '{print $7;exit}')
+      ssh-keygen -f /tmp/id_rsa -t rsa -N ''
+      mkdir -p ~/.ssh
+      cat /tmp/id_rsa.pub > ~/.ssh/authorized_keys
+      chmod 0644 ~/.ssh/authorized_keys
+      chmod 0700 ~/.ssh
+      echo "/tmp/id_rsa" >> "${vmpreparedir}/hostfiles"
+      sudo rm -f /etc/ssh/ssh_host*key
+      sudo ssh-keygen -A
+      sudo /usr/sbin/sshd -E /srv/sshd.log
+    fi
+
     # the reason we do a heredoc here is so that the var substition takes
     # place immediately instead of having to proxy them through to the VM
     cat > "${vmpreparedir}/init" <<EOF
@@ -264,6 +280,8 @@ runvm() {
 set -xeuo pipefail
 export PATH=/usr/sbin:$PATH
 workdir=${workdir}
+sshd_port=${sshd_port:-}
+ip_addr=${ip_addr:-}
 
 # use the builder user's id, otherwise some operations like
 # chmod will set ownership to root, not builder
@@ -272,8 +290,9 @@ export USER=$(id -u)
 # ensure the user of files created do not have root ownership
 trap 'chown -h -R ${USER}:${USER} ${workdir}' EXIT
 
-$(cat "${DIR}"/supermin-init-prelude.sh)
+$(cat "${DIR}/${prelude}")
 rc=0
+bash
 sh ${TMPDIR}/cmd.sh || rc=\$?
 echo \$rc > ${workdir}/tmp/rc
 /sbin/fstrim -v ${workdir}/cache
@@ -285,9 +304,15 @@ EOF
 
     echo "$@" > "${TMPDIR}"/cmd.sh
 
+    # only use virtfs on Fedora
+    virtfs=()
+    if [ -n "${ISFEDORA}" ]; then
+      virtfs=("-virtfs" "local,id=workdir,path=${workdir},security_model=none,mount_tag=workdir")
+    fi
+
     # support local dev cases where src/config is a symlink
     srcvirtfs=()
-    if [ -L "${workdir}/src/config" ]; then
+    if [ -L "${workdir}/src/config" ] && [ -n "${ISFEDORA}" ]; then
         # qemu follows symlinks
         srcvirtfs=("-virtfs" "local,id=source,path=${workdir}/src/config,security_model=none,mount_tag=source")
     fi
@@ -308,12 +333,17 @@ EOF
         -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=0,drive=drive-scsi0-0-0-0,id=scsi0-0-0-0,bootindex=1 \
         -drive if=none,id=drive-scsi0-0-0-1,discard=unmap,file="${workdir}/cache/cache.qcow2" \
         -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=1,drive=drive-scsi0-0-0-1,id=scsi0-0-0-1 \
-        -virtfs local,id=workdir,path="${workdir}",security_model=none,mount_tag=workdir \
-        "${srcvirtfs[@]}" -serial stdio -append "root=/dev/sda console=ttyS0 selinux=1 enforcing=0 autorelabel=1"
+        "${virtfs[@]}" "${srcvirtfs[@]}" -serial stdio -append "root=/dev/sda console=ttyS0 selinux=1 enforcing=0 autorelabel=1"
 
     if [ ! -f "${workdir}"/tmp/rc ]; then
         fatal "Couldn't find rc file, something went terribly wrong!"
     fi
+
+    if [ -n "${ISEL}" ] && [ -f /var/run/sshd.pid ]; then
+      sudo kill -15 "$(cat /var/run/sshd.pid)"
+      rm -f /tmp/id_rsa /tmp/id_rsa.pub
+    fi
+
     return "$(cat "${workdir}"/tmp/rc)"
 }
 

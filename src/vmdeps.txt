@@ -17,3 +17,4 @@ selinux-policy selinux-policy-targeted policycoreutils
 
 # coreos-assembler
 python3 python3-gobject-base buildah podman skopeo iptables iptables-libs
+#EL fuse-sshfs openssh-server
