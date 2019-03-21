@@ -173,6 +173,15 @@ ostree refs --delete {args.ostree_remote}:{args.ostree_ref}
 %end
 """)
 
+if 'inject-core-user' in image_conf.keys():
+    print("virt-install: injecting the 'core' user")
+    ks_tmp.write("""
+%post --erroronfail
+cat >>/usr/lib/coreos-assembler/image-base.ks <<EOF
+user --name=core --groups='wheel,sudo,adm,systemd-journal'
+%end
+    """)
+
 # This is an "extension" to kickstart files that we implement as a comment.
 if args.create_disk and args.kickstart:
     magic_virt_install_size_str = '#--coreos-virt-install-disk-size-gb:'
