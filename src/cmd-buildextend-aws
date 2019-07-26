@@ -21,6 +21,8 @@ parser.add_argument("--bucket", help="S3 Bucket",
 parser.add_argument("--name-suffix", help="Suffix for name")
 parser.add_argument("--grant-user", help="Grant user launch permission",
                     nargs="*", default=[])
+parser.add_argument("--force", help="Overwrite S3 objects rather than reusing",
+                    default=False)
 args = parser.parse_args()
 
 builds = Builds()
@@ -65,6 +67,8 @@ def run_ore():
                 '--file', tmp_img_aws_vmdk,
                 '--disk-size-inspect',
                 '--delete-object']
+    if args.force:
+        ore_args.append('--force')
     for user in args.grant_user:
         ore_args.extend(['--grant-user', user])
     print("+ {}".format(subprocess.list2cmdline(ore_args)))
