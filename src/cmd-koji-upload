@@ -100,15 +100,15 @@ class Build(_Build):
     Koji implementation of Build.
     """
     def __init__(self, *args, **kwargs):
-        self._tmpdir = tempfile.mkdtemp(prefix="koji-build")
+        self._workdir = tempfile.mkdtemp(prefix="koji-build")
         _Build.__init__(self, *args, **kwargs)
 
     def __del__(self):
         try:
-            shutil.rmtree(self._tmpdir)
+            shutil.rmtree(self._workdir)
         except Exception as e:
             raise Exception(
-                f"failed to remove temporary directory: {self._tmpdir}", e)
+                f"failed to remove temporary directory: {self._workdir}", e)
 
     def rename_mutator(self, fname):
         """
@@ -163,7 +163,7 @@ class Build(_Build):
                 elif x == "xz":
                     raise Exception("not supported yet")
 
-                new_path = os.path.join(self._tmpdir, base)
+                new_path = os.path.join(self._workdir, base)
                 try:
                     infile = compressor.open(fname)
                     outfile = open(new_path, 'wb+')
