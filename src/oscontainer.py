@@ -118,7 +118,8 @@ def oscontainer_extract(containers_storage, src, dest,
 # oscontainer with it.
 def oscontainer_build(containers_storage, src, ref, image_name_and_tag,
                       base_image, push=False, tls_verify=True,
-                      add_directories=[], cert_dir="", authfile="", inspect_out=None):
+                      add_directories=[], cert_dir="", authfile="", labels=[],
+                      inspect_out=None):
     r = OSTree.Repo.new(Gio.File.new_for_path(src))
     r.open(None)
 
@@ -174,6 +175,10 @@ def oscontainer_build(containers_storage, src, ref, image_name_and_tag,
                   '-l', OSCONTAINER_COMMIT_LABEL + '=' + rev]
         if ostree_version is not None:
             config += ['-l', 'version=' + ostree_version]
+
+        for l in labels:
+            config += ['-l', l]
+
         run_verbose(buildah_base_argv + ['config'] + config + [bid])
         print("Committing container...")
         iid = run_get_string(buildah_base_argv + ['commit', bid, image_name_and_tag])
@@ -250,6 +255,8 @@ def main():
         "--push",
         help="Push to registry",
         action='store_true')
+    parser_build.add_argument("--label", help="Provided string 'label=value', add that label to oscontainer",
+                              action='append', default=[])
     args = parser.parse_args()
 
     containers_storage = None
@@ -274,7 +281,8 @@ def main():
             push=args.push,
             tls_verify=not args.disable_tls_verify,
             cert_dir=args.cert_dir,
-            authfile=args.authfile)
+            authfile=args.authfile,
+            labels=args.label)
 
 
 if __name__ == '__main__':
