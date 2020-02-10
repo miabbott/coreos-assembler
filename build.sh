@@ -66,6 +66,11 @@ install_rpms() {
     archdeps=$(sed "s/${filter}//" "${srcdir}/deps-$(arch)".txt | grep -v '^#')
     echo "${builddeps}" "${deps}" "${archdeps}" | xargs yum -y install
 
+    # After the install operations, manually install the F31 build of rpm-ostree
+    # we want for `exclude-packages` support:
+    yum -y install https://kojipkgs.fedoraproject.org/repos-dist/f31-coreos-continuous/latest/x86_64/Packages/r/rpm-ostree-2020.1-1.fc31.x86_64.rpm \
+                   https://kojipkgs.fedoraproject.org/repos-dist/f31-coreos-continuous/latest/x86_64/Packages/r/rpm-ostree-libs-2020.1-1.fc31.x86_64.rpm
+
     # Commented out for now, see above
     #dnf remove -y $builddeps}
     # can't remove grubby on el7 because libguestfs-tools depends on it
