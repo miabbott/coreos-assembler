@@ -126,7 +126,7 @@ func runTestIso(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("build %s has no legacy installer kernel", kola.CosaBuild.Name)
 	}
 
-	foundLive := kola.CosaBuild.BuildArtifacts.LiveKernel.Path != ""
+	foundLive := baseInst.CosaBuild.BuildArtifacts.LiveKernel.Path != ""
 	if !nolive {
 		if !foundLive {
 			return fmt.Errorf("build %s has no live installer kernel", kola.CosaBuild.Name)
